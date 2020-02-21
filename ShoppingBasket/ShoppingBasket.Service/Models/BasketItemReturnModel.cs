@@ -1,9 +1,8 @@
 ﻿namespace ShoppingBasket.Service.Models
 {
-    public class BasketItem
+    public class BasketItemReturnModel
     {
         public int Id { get; set; }
-        public string Name { get; set; }
         public double Price { get; set; }
     }
 }
