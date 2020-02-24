@@ -47,6 +47,18 @@ namespace ShoppingBasket.Service
             return basketItems.Count == item.Quantity;
         }
 
+        public void Delete(int userId, int itemId)
+        {
+            var userBasketItem = userBasketRepository.GetItem(b => b.UserId == userId && b.ItemId == itemId);
+
+            if (userBasketItem == null)
+            {
+                throw new ShoppingBasketException("Item not found in the basket!");
+            }
+
+            userBasketRepository.Delete(userBasketItem);
+        }
+
         private double GetTotalPrice(List<BasketItem> basketItems) => basketItems.Sum(p => p.Price);
     }
 }

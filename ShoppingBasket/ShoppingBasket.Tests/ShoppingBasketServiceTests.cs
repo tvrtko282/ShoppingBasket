@@ -9,7 +9,7 @@ using System.Collections.Generic;
 namespace ShoppingBasket.Tests
 {
     [TestFixture]
-    public class AddItemsTests
+    public class ShoppingBasketServiceTests
     {
         private readonly Mock<IUserBasketRepository> userBasketRepo = new Mock<IUserBasketRepository>();
         private readonly Mock<IBasketItemRepository> basketItemRepo = new Mock<IBasketItemRepository>();
@@ -64,6 +64,17 @@ namespace ShoppingBasket.Tests
             var newItem = new AddItemModel(1, 1);
 
             Assert.Throws<ShoppingBasketException>(delegate { service.Add(newItem, USER_ID); });
+        }
+
+        [Test]
+        public void DeleteThrowsShoppingBasketException()
+        {
+            userBasketRepo.Setup(b => b.GetItem(It.IsAny<Func<UserBasketItem, bool>>()))
+                .Returns((UserBasketItem)null);
+
+            var service = new ShoppingBasketService(userBasketRepo.Object, basketItemRepo.Object);
+
+            Assert.Throws<ShoppingBasketException>(delegate { service.Delete(1, USER_ID); });
         }
     }
 }

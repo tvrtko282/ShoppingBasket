@@ -62,7 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="AddItemsTests.cs" />
+    <Compile Include="ShoppingBasketServiceTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
