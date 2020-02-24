@@ -5,73 +5,65 @@ using ShoppingBasket.Service.Interfaces;
 using ShoppingBasket.Service.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 
 namespace ShoppingBasket.Tests
 {
     [TestFixture]
     public class AddItemsTests
     {
+        private readonly Mock<IUserBasketRepository> userBasketRepo = new Mock<IUserBasketRepository>();
+        private readonly Mock<IBasketItemRepository> basketItemRepo = new Mock<IBasketItemRepository>();
+
+        private const int USER_ID = 1;
+
         [Test]
-        public void AddItems_TotalPrice()
+        public void AddItems()
         {
-            var userId = 1;
+            userBasketRepo.Setup(x => x.AddRange(It.IsAny<List<UserBasketItem>>()))
+                .Returns(() =>
+                {
+                    return new List<BasketItem>
+                    {
+                        new BasketItem
+                        {
+                            Id = 1,
+                            Name = "Butter",
+                            Price = 0.8
+                        }
+                    };
+                });
 
-            var userBasketRepo = MockUserBasketRepo(userId);
-
-            var basketItemRepo = MockBasketRepo();
+            basketItemRepo.Setup(x => x.Exists(It.IsAny<Func<BasketItem, bool>>()))
+                .Returns(true);
 
             var service = new ShoppingBasketService(userBasketRepo.Object, basketItemRepo.Object);
 
-            var items = new List<AddItemModel>
-            {
-                new AddItemModel(1, 2)
-            };
+            var newItem = new AddItemModel(1, 1);
 
-            var data = service.Add(items, 1);
+            var data = service.Add(newItem, USER_ID);
 
-            Assert.IsTrue(data.TotalPrice == 1.6);
+            Assert.IsTrue(data);
         }
 
-        private static Mock<IUserBasketRepository> MockUserBasketRepo(int userId)
+        [Test]
+        public void AddItemsThrowsArgumentNullException()
         {
-            var userBasketRepo = new Mock<IUserBasketRepository>();
-            userBasketRepo.Setup(x => x.GetItems(It.IsAny<Func<UserBasketItem, bool>>())).Returns(() =>
-            {
-                return new List<UserBasketItem>
-                {
-                    new UserBasketItem
-                    {
-                        ItemId = 1,
-                        UserId = userId,
-                    },
-                    new UserBasketItem
-                    {
-                        ItemId = 1,
-                        UserId = userId,
-                    }
-                };
-            });
-            return userBasketRepo;
+            var service = new ShoppingBasketService(userBasketRepo.Object, basketItemRepo.Object);
+
+            Assert.Throws<ArgumentNullException>(delegate { service.Add(null, USER_ID); });
         }
 
-        private static Mock<IBasketItemRepository> MockBasketRepo()
+        [Test]
+        public void AddItemsThrowsShoppingBasketException()
         {
-            var basketItemRepo = new Mock<IBasketItemRepository>();
-            basketItemRepo.Setup(x => x.Get(It.IsAny<Func<BasketItem, bool>>())).Returns(() =>
-            {
-                return new List<BasketItem>
-                {
-                    new BasketItem
-                    {
-                        Id = 1,
-                        Name = "Butter",
-                        Price = 0.8
-                    }
-                };
-            });
+            basketItemRepo.Setup(b => b.Exists(It.IsAny<Func<BasketItem, bool>>()))
+                .Returns(false);
 
-            return basketItemRepo;
+            var service = new ShoppingBasketService(userBasketRepo.Object, basketItemRepo.Object);
+
+            var newItem = new AddItemModel(1, 1);
+
+            Assert.Throws<ShoppingBasketException>(delegate { service.Add(newItem, USER_ID); });
         }
     }
 }

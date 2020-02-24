@@ -6,8 +6,7 @@ namespace ShoppingBasket.Service.Interfaces
 {
     public interface IUserBasketRepository
     {
-        void AddRange(List<UserBasketItem> items);
+        List<BasketItem> AddRange(List<UserBasketItem> predicate);
         void Delete(Func<UserBasketItem, bool> predicate);
-        List<UserBasketItem> GetItems(Func<UserBasketItem, bool> predicate);
     }
 }

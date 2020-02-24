@@ -6,6 +6,6 @@ namespace ShoppingBasket.Service.Interfaces
 {
     public interface IBasketItemRepository
     {
-        List<BasketItem> Get(Func<BasketItem, bool> predicate);
+        bool Exists(Func<BasketItem, bool> predicate);
     }
 }

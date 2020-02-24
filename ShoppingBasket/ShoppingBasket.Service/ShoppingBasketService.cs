@@ -17,68 +17,36 @@ namespace ShoppingBasket.Service
             this.basketItemRepository = basketItemRepository;
         }
 
-        public AddItemsReturnModel Add(List<AddItemModel> items, int userId)
+        public bool Add(AddItemModel item, int userId)
         {
-            var itemsIds = items.Select(p => p.ItemId);
-            var basketItems = basketItemRepository.Get(b => itemsIds.Contains(b.Id));
-
-            if (basketItems.Count != items.Count)
+            if (item == null)
             {
-                // replace with custom exception
-                throw new Exception("Unexpected items in the shopping basket!");
+                throw new ArgumentNullException(nameof(item));
             }
 
-            var userBasketItems = AddItems(items, basketItems, userId);
+            var itemExists = basketItemRepository.Exists(b => item.ItemId == b.Id);
 
-            var totalPrice = GetTotalPrice(userBasketItems);
-
-            var discountPrice = GetDiscountPrice(userBasketItems);
-
-            return new AddItemsReturnModel
+            if (!itemExists)
             {
-                TotalPrice = totalPrice,
-                TotalPriceWithDiscount = discountPrice
-            };
-        }
+                throw new ShoppingBasketException("Unexpected item in the shopping basket!");
+            }
 
-        private List<BasketItemReturnModel> AddItems(List<AddItemModel> items, List<BasketItem> basketItems, int userId)
-        {
             var userItems = new List<UserBasketItem>();
 
-            foreach (var item in items)
+            for (var i = 0; i < item.Quantity; i++)
             {
-                for (var i = 0; i < item.Quantity; i++)
+                userItems.Add(new UserBasketItem()
                 {
-                    userItems.Add(new UserBasketItem()
-                    {
-                        ItemId = item.ItemId,
-                        UserId = userId
-                    });
-                }
+                    ItemId = item.ItemId,
+                    UserId = userId
+                });
             }
 
-            userBasketRepository.AddRange(userItems);
+            var basketItems = userBasketRepository.AddRange(userItems);
 
-            // should be returned by the repo?
-            var fullItem = userItems.Join(basketItems, b => b.ItemId, i => i.Id, (b, i) => new BasketItemReturnModel
-            {
-                Id = b.ItemId,
-                Price = i.Price
-            }).ToList();
-
-            return fullItem;
+            return basketItems.Count == item.Quantity;
         }
 
-        private double GetTotalPrice(List<BasketItemReturnModel> basketItems) => basketItems.Sum(p => p.Price);
-
-        private double GetDiscountPrice(List<BasketItemReturnModel> basketItems)
-        {
-            return 0;
-        }
-
-        private List<UserBasketItem> GetUserItems(int userId)
-        {
-            return userBasketRepository.GetItems(i => i.UserId == userId);
-        }
+        private double GetTotalPrice(List<BasketItem> basketItems) => basketItems.Sum(p => p.Price);
     }
 }
