@@ -5,6 +5,6 @@ namespace ShoppingBasket.Service.Interfaces
 {
     public interface IDiscountRepository
     {
-        List<Discount> Get();
+        IEnumerable<IDiscount> Get();
     }
 }

@@ -1,6 +1,8 @@
-﻿namespace ShoppingBasket.Service.Models
+﻿using ShoppingBasket.Service.Interfaces;
+
+namespace ShoppingBasket.Service.Models
 {
-    public class BasketItem
+    public class BasketItem : IBasketItem
     {
         public int Id { get; set; }
         public string Name { get; set; }

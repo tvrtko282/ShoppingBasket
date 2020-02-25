@@ -1,14 +1,13 @@
-﻿using ShoppingBasket.Service.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace ShoppingBasket.Service.Interfaces
 {
     public interface IUserBasketRepository
     {
-        List<BasketItem> AddRange(List<UserBasketItem> predicate);
-        void Delete(UserBasketItem userBasketItem);
-        UserBasketItem GetItem(Func<UserBasketItem, bool> predicate);
-        List<BasketItem> Get(Func<UserBasketItem, bool> predicate);
+        IEnumerable<IUserBasketItem> AddRange(List<IUserBasketItem> predicate);
+        void Delete(IUserBasketItem userBasketItem);
+        IUserBasketItem GetItem(Func<IUserBasketItem, bool> predicate);
+        IEnumerable<IBasketItem> Get(Func<IUserBasketItem, bool> predicate);
     }
 }

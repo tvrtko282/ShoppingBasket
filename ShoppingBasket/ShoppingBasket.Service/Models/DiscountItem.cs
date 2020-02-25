@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using ShoppingBasket.Service.Interfaces;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace ShoppingBasket.Service.Models
@@ -8,7 +9,7 @@ namespace ShoppingBasket.Service.Models
         public double DiscountPrice { get; set; }
         public bool DiscountApplied { get; set; }
 
-        public DiscountItem(BasketItem item)
+        public DiscountItem(IBasketItem item)
         {
             Id = item.Id;
             Name = item.Name;
@@ -17,16 +18,16 @@ namespace ShoppingBasket.Service.Models
             DiscountApplied = false;
         }
 
-        public void ApplyDiscount(List<DiscountItem> basketItems, Discount discount)
+        public void ApplyDiscount(List<DiscountItem> basketItems, IDiscount discount)
         {
-            if (AppliesForDiscount(basketItems, discount))
+            if (EligibleForDiscount(basketItems, discount))
             {
                 DiscountPrice = Price - (Price * discount.DiscountAmount);
                 DiscountApplied = true;
             }
         }
 
-        private bool AppliesForDiscount(List<DiscountItem> basketItems, Discount discount)
+        private bool EligibleForDiscount(List<DiscountItem> basketItems, IDiscount discount)
         {
             var discountItems = basketItems.Where(b => b.Id == discount.DiscountItemId && b.DiscountApplied).ToList();
             var numberOfDiscounts = basketItems.Where(b => b.Id == discount.FirstItemId).Count() / discount.FirstItemQuantity;

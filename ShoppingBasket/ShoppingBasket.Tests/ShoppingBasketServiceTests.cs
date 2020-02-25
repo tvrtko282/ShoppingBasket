@@ -20,21 +20,20 @@ namespace ShoppingBasket.Tests
         [Test]
         public void AddItems()
         {
-            userBasketRepo.Setup(x => x.AddRange(It.IsAny<List<UserBasketItem>>()))
+            userBasketRepo.Setup(x => x.AddRange(It.IsAny<List<IUserBasketItem>>()))
                 .Returns(() =>
                 {
-                    return new List<BasketItem>
+                    return new List<IUserBasketItem>
                     {
-                        new BasketItem
+                        new UserBasketItem
                         {
-                            Id = 1,
-                            Name = "Butter",
-                            Price = 0.8
+                            ItemId = 1,
+                            UserId = USER_ID
                         }
                     };
                 });
 
-            basketItemRepo.Setup(x => x.Exists(It.IsAny<Func<BasketItem, bool>>()))
+            basketItemRepo.Setup(x => x.Exists(It.IsAny<Func<IBasketItem, bool>>()))
                 .Returns(true);
 
             var service = new ShoppingBasketService(userBasketRepo.Object, basketItemRepo.Object, discountRepo.Object);
@@ -57,7 +56,7 @@ namespace ShoppingBasket.Tests
         [Test]
         public void AddItemsThrowsShoppingBasketException()
         {
-            basketItemRepo.Setup(b => b.Exists(It.IsAny<Func<BasketItem, bool>>()))
+            basketItemRepo.Setup(b => b.Exists(It.IsAny<Func<IBasketItem, bool>>()))
                 .Returns(false);
 
             var service = new ShoppingBasketService(userBasketRepo.Object, basketItemRepo.Object, discountRepo.Object);
@@ -70,7 +69,7 @@ namespace ShoppingBasket.Tests
         [Test]
         public void DeleteThrowsShoppingBasketException()
         {
-            userBasketRepo.Setup(b => b.GetItem(It.IsAny<Func<UserBasketItem, bool>>()))
+            userBasketRepo.Setup(b => b.GetItem(It.IsAny<Func<IUserBasketItem, bool>>()))
                 .Returns((UserBasketItem)null);
 
             var service = new ShoppingBasketService(userBasketRepo.Object, basketItemRepo.Object, discountRepo.Object);
@@ -81,10 +80,10 @@ namespace ShoppingBasket.Tests
         [Test]
         public void GetBasket_1_bread_1_butter_1_milk()
         {
-            userBasketRepo.Setup(b => b.Get(It.IsAny<Func<UserBasketItem, bool>>()))
+            userBasketRepo.Setup(b => b.Get(It.IsAny<Func<IUserBasketItem, bool>>()))
                 .Returns(() =>
                 {
-                    return new List<BasketItem>
+                    return new List<IBasketItem>
                     {
                         new BasketItem(){ Id = 1, Name = "Butter", Price = 0.8 },
                         new BasketItem(){ Id = 2, Name = "Milk", Price = 1.15 },
@@ -100,6 +99,7 @@ namespace ShoppingBasket.Tests
 
             PrintBasketToConsole(basket);
 
+            Assert.IsTrue(basket.DiscountPrice == 2.95);
             Assert.IsTrue(basket.TotalPrice == 2.95);
         }
 
@@ -107,7 +107,7 @@ namespace ShoppingBasket.Tests
         {
             discountRepo.Setup(b => b.Get()).Returns(() =>
             {
-                return new List<Discount>
+                return new List<IDiscount>
                 {
                     new Discount(1, 2, 3, 1, 0.5), // buy 2 butters and get 1 bread at 50% off
                     new Discount(2, 3, 2, 1, 1) // buy 3 milks and get the 4th at 100% off
@@ -118,10 +118,10 @@ namespace ShoppingBasket.Tests
         [Test]
         public void GetBasket_2_butters_2_breads()
         {
-            userBasketRepo.Setup(b => b.Get(It.IsAny<Func<UserBasketItem, bool>>()))
+            userBasketRepo.Setup(b => b.Get(It.IsAny<Func<IUserBasketItem, bool>>()))
                 .Returns(() =>
                 {
-                    return new List<BasketItem>
+                    return new List<IBasketItem>
                     {
                         new BasketItem(){ Id = 1, Name = "Butter", Price = 0.8 },
                         new BasketItem(){ Id = 1, Name = "Butter", Price = 0.8 },
@@ -138,16 +138,44 @@ namespace ShoppingBasket.Tests
 
             PrintBasketToConsole(basket);
 
+            Assert.IsTrue(basket.TotalPrice == 3.6);
             Assert.IsTrue(basket.DiscountPrice == 3.1);
+        }
+
+        [Test]
+        public void GetBasket_2_butters_2_breads_NoDiscounts()
+        {
+            userBasketRepo.Setup(b => b.Get(It.IsAny<Func<IUserBasketItem, bool>>()))
+                .Returns(() =>
+                {
+                    return new List<IBasketItem>
+                    {
+                        new BasketItem(){ Id = 1, Name = "Butter", Price = 0.8 },
+                        new BasketItem(){ Id = 1, Name = "Butter", Price = 0.8 },
+                        new BasketItem(){ Id = 3, Name = "Bread", Price = 1.0 },
+                        new BasketItem(){ Id = 3, Name = "Bread", Price = 1.0 }
+                    };
+                });
+
+            discountRepo.Setup(b => b.Get()).Returns(() => null);
+
+            var service = new ShoppingBasketService(userBasketRepo.Object, basketItemRepo.Object, discountRepo.Object);
+
+            var basket = service.GetUserBasket(USER_ID);
+
+            PrintBasketToConsole(basket);
+
+            Assert.IsTrue(basket.TotalPrice == 3.6);
+            Assert.IsTrue(basket.DiscountPrice == 3.6);
         }
 
         [Test]
         public void GetBasket_4_milks()
         {
-            userBasketRepo.Setup(b => b.Get(It.IsAny<Func<UserBasketItem, bool>>()))
+            userBasketRepo.Setup(b => b.Get(It.IsAny<Func<IUserBasketItem, bool>>()))
                 .Returns(() =>
                 {
-                    return new List<BasketItem>
+                    return new List<IBasketItem>
                     {
                         new BasketItem(){ Id = 2, Name = "Milk", Price = 1.15 },
                         new BasketItem(){ Id = 2, Name = "Milk", Price = 1.15 },
@@ -164,16 +192,17 @@ namespace ShoppingBasket.Tests
 
             PrintBasketToConsole(basket);
 
+            Assert.IsTrue(basket.TotalPrice == 4.6);
             Assert.IsTrue(basket.DiscountPrice == 3.45);
         }
 
         [Test]
         public void GetBasket_2_butter_1_bread_8_milk()
         {
-            userBasketRepo.Setup(b => b.Get(It.IsAny<Func<UserBasketItem, bool>>()))
+            userBasketRepo.Setup(b => b.Get(It.IsAny<Func<IUserBasketItem, bool>>()))
                 .Returns(() =>
                 {
-                    return new List<BasketItem>
+                    return new List<IBasketItem>
                     {
                         new BasketItem(){ Id = 1, Name = "Butter", Price = 0.8 },
                         new BasketItem(){ Id = 1, Name = "Butter", Price = 0.8 },
@@ -197,7 +226,26 @@ namespace ShoppingBasket.Tests
 
             PrintBasketToConsole(basket);
 
+            Assert.IsTrue(basket.TotalPrice == 11.8);
             Assert.IsTrue(basket.DiscountPrice == 9.0);
+        }
+
+        [Test]
+        public void GetBasket_NoItems()
+        {
+            userBasketRepo.Setup(b => b.Get(It.IsAny<Func<IUserBasketItem, bool>>()))
+                .Returns(() => null);
+
+            SetupDiscounts();
+
+            var service = new ShoppingBasketService(userBasketRepo.Object, basketItemRepo.Object, discountRepo.Object);
+
+            var basket = service.GetUserBasket(USER_ID);
+
+            PrintBasketToConsole(basket);
+
+            Assert.IsTrue(basket.TotalPrice == 0);
+            Assert.IsTrue(basket.DiscountPrice == 0);
         }
 
         private void PrintBasketToConsole(BasketModel basket)

@@ -41,8 +41,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Interfaces\IBasketItem.cs" />
     <Compile Include="Interfaces\IBasketItemRepository.cs" />
+    <Compile Include="Interfaces\IDiscount.cs" />
     <Compile Include="Interfaces\IDiscountRepository.cs" />
+    <Compile Include="Interfaces\IUserBasketItem.cs" />
     <Compile Include="Interfaces\IUserBasketRepository.cs" />
     <Compile Include="Models\AddItemModel.cs" />
     <Compile Include="Models\BasketItem.cs" />

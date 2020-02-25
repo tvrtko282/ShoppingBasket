@@ -1,6 +1,8 @@
-﻿namespace ShoppingBasket.Service.Models
+﻿using ShoppingBasket.Service.Interfaces;
+
+namespace ShoppingBasket.Service.Models
 {
-    public class Discount
+    public class Discount : IDiscount
     {
         public int FirstItemId { get; set; }
         public int FirstItemQuantity { get; set; }

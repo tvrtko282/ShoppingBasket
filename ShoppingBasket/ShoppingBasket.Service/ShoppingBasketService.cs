@@ -35,7 +35,7 @@ namespace ShoppingBasket.Service
                 throw new ShoppingBasketException("Unexpected item in the shopping basket!");
             }
 
-            var userItems = new List<UserBasketItem>();
+            var userItems = new List<IUserBasketItem>();
 
             for (var i = 0; i < item.Quantity; i++)
             {
@@ -48,7 +48,7 @@ namespace ShoppingBasket.Service
 
             var basketItems = userBasketRepository.AddRange(userItems);
 
-            return basketItems?.Count == item.Quantity;
+            return basketItems?.Count() == item.Quantity;
         }
 
         public void Delete(int userId, int itemId)
@@ -65,11 +65,11 @@ namespace ShoppingBasket.Service
 
         public BasketModel GetUserBasket(int userId)
         {
-            var items = userBasketRepository.Get(u => u.UserId == userId) ?? new List<BasketItem>();
+            var items = userBasketRepository.Get(u => u.UserId == userId) ?? new List<IBasketItem>();
 
-            var discounts = discountRepository.Get() ?? new List<Discount>();
+            var discounts = discountRepository.Get() ?? new List<IDiscount>();
 
-            var discountItems = items.Select(i => new DiscountItem(i)).ToList();
+            var discountItems = items.Select(item => new DiscountItem(item)).ToList();
 
             foreach (var item in discountItems)
             {
@@ -90,9 +90,8 @@ namespace ShoppingBasket.Service
             };
         }
 
-        private double GetTotalPrice(List<DiscountItem> basketItems) => basketItems.Sum(p => p.Price);
+        private double GetTotalPrice(List<DiscountItem> basketItems) => Math.Round(basketItems.Sum(p => p.Price), 2);
 
         private double GetTotalDiscountPrice(List<DiscountItem> basketItems) => Math.Round(basketItems.Sum(p => p.DiscountPrice), 2);
-
     }
 }
