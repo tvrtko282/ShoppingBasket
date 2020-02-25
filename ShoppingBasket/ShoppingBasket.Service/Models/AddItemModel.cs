@@ -3,9 +3,9 @@
     public class AddItemModel
     {
         public int ItemId { get; set; }
-        public int Quantity { get; set; }
+        public uint Quantity { get; set; }
 
-        public AddItemModel(int itemId, int quantity)
+        public AddItemModel(int itemId, uint quantity)
         {
             ItemId = itemId;
             Quantity = quantity;

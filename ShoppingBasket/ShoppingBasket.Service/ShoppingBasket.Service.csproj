@@ -42,9 +42,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Interfaces\IBasketItemRepository.cs" />
+    <Compile Include="Interfaces\IDiscountRepository.cs" />
     <Compile Include="Interfaces\IUserBasketRepository.cs" />
     <Compile Include="Models\AddItemModel.cs" />
     <Compile Include="Models\BasketItem.cs" />
+    <Compile Include="Models\BasketModel.cs" />
+    <Compile Include="Models\Discount.cs" />
+    <Compile Include="Models\DiscountItem.cs" />
     <Compile Include="Models\ShoppingBasketException.cs" />
     <Compile Include="Models\UserBasketItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

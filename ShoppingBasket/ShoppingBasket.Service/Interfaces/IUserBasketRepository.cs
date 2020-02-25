@@ -9,5 +9,6 @@ namespace ShoppingBasket.Service.Interfaces
         List<BasketItem> AddRange(List<UserBasketItem> predicate);
         void Delete(UserBasketItem userBasketItem);
         UserBasketItem GetItem(Func<UserBasketItem, bool> predicate);
+        List<BasketItem> Get(Func<UserBasketItem, bool> predicate);
     }
 }

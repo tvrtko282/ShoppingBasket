@@ -10,11 +10,15 @@ namespace ShoppingBasket.Service
     {
         private readonly IUserBasketRepository userBasketRepository;
         private readonly IBasketItemRepository basketItemRepository;
+        private readonly IDiscountRepository discountRepository;
 
-        public ShoppingBasketService(IUserBasketRepository userBasketRepository, IBasketItemRepository basketItemRepository)
+        public ShoppingBasketService(IUserBasketRepository userBasketRepository, 
+            IBasketItemRepository basketItemRepository,
+            IDiscountRepository discountRepository)
         {
             this.userBasketRepository = userBasketRepository;
             this.basketItemRepository = basketItemRepository;
+            this.discountRepository = discountRepository;
         }
 
         public bool Add(AddItemModel item, int userId)
@@ -44,7 +48,7 @@ namespace ShoppingBasket.Service
 
             var basketItems = userBasketRepository.AddRange(userItems);
 
-            return basketItems.Count == item.Quantity;
+            return basketItems?.Count == item.Quantity;
         }
 
         public void Delete(int userId, int itemId)
@@ -59,6 +63,36 @@ namespace ShoppingBasket.Service
             userBasketRepository.Delete(userBasketItem);
         }
 
-        private double GetTotalPrice(List<BasketItem> basketItems) => basketItems.Sum(p => p.Price);
+        public BasketModel GetUserBasket(int userId)
+        {
+            var items = userBasketRepository.Get(u => u.UserId == userId) ?? new List<BasketItem>();
+
+            var discounts = discountRepository.Get() ?? new List<Discount>();
+
+            var discountItems = items.Select(i => new DiscountItem(i)).ToList();
+
+            foreach (var item in discountItems)
+            {
+                foreach (var discount in discounts)
+                {
+                    item.ApplyDiscount(discountItems, discount);
+                }
+            }
+
+            var totalPrice = GetTotalPrice(discountItems);
+            var discountPrice = GetTotalDiscountPrice(discountItems);
+
+            return new BasketModel()
+            {
+                Items = discountItems,
+                TotalPrice = totalPrice,
+                DiscountPrice = discountPrice
+            };
+        }
+
+        private double GetTotalPrice(List<DiscountItem> basketItems) => basketItems.Sum(p => p.Price);
+
+        private double GetTotalDiscountPrice(List<DiscountItem> basketItems) => Math.Round(basketItems.Sum(p => p.DiscountPrice), 2);
+
     }
 }
